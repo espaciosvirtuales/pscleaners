@@ -1,0 +1,10 @@
+.columna-buscador {
+  text-align: right;
+}
+.lista_clientes-acciones a {
+  color: grey;
+}
+.lista_clientes-acciones a:hover,
+.lista_clientes-acciones a:hover i {
+  color: #77c4d2 !important;
+}

@@ -1,0 +1,41 @@
+.App {
+  background-color: #f1ece8;
+  min-height: 100vh;
+}
+.ui.grid.header-menu {
+  padding: 20px 0;
+  background: #ffffff;
+}
+.menu-item {
+  background-color: #244b99;
+  border: solid 1px #ffffff;
+  padding: 15px;
+  text-align: center;
+}
+.menu-item i.icon {
+  color: #ffffff;
+}
+.ui.grid + .grid.menu-principal {
+  margin-top: 0;
+}
+.main-content {
+  padding: 30px 0;
+}
+img.ui.image {
+  display: inline-block;
+}
+.menu-principal .menu.transition.visible {
+  width: 100%;
+  padding: 30px;
+  text-align: center;
+  background-color: #74706b;
+}
+.menu-principal .menu.transition.visible a {
+  color: #ffffff;
+}
+.menu-principal .menu.transition.visible a:hover {
+  color: #244b99 !important;
+}
+.menu-principal .menu.transition.visible a .item {
+  padding: 20px 0;
+}
