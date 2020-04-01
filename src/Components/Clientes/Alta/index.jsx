@@ -18,6 +18,7 @@ class AltaCliente extends Component {
     loading: false,
     operadoresLoading: true,
     operadores: [],
+    operadoresSelected: [],
     nuevoCliente: {
       Nombre: "",
       Sucursal: "",
@@ -45,14 +46,18 @@ class AltaCliente extends Component {
         console.log(res);
         const operadores = res.data.map(o => {
           return {
-            key: o.Id,
+            key: o.id,
             text: o.Nombre,
-            value: o.Id
+            value: o.id
           };
         });
         this.setState({ operadores, operadoresLoading: false });
       })
       .catch(err => console.log(err));
+  };
+
+  changeOperadores = (e, { value }) => {
+    this.setState({ operadoresSelected: value });
   };
 
   handleChange = (e, field) => {
@@ -61,6 +66,19 @@ class AltaCliente extends Component {
         ...this.state.nuevoCliente,
         [field]: e.target.value
       }
+    });
+  };
+
+  guardarOperadores = idCliente => {
+    this.state.operadoresSelected.forEach(async op => {
+      await feathers
+        .service("operador-cliente")
+        .create({
+          Cliente_Id: idCliente,
+          Operador_Id: op
+        })
+        .then(res => console.log(res))
+        .catch(err => console.log(err));
     });
   };
 
@@ -74,6 +92,7 @@ class AltaCliente extends Component {
       .create(nuevoCliente)
       .then(res => {
         console.log(res);
+        this.guardarOperadores(res.id);
         swal(
           "Cliente Agregado",
           "El cliente se ha agregado correctamente",
@@ -186,7 +205,9 @@ class AltaCliente extends Component {
                 fluid
                 multiple
                 selection
+                value={this.state.operadoresSelected}
                 options={this.state.operadores}
+                onChange={this.changeOperadores}
               />
             </Form.Field>
           </Form.Group>

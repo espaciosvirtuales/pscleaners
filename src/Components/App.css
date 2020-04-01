@@ -24,18 +24,62 @@
 img.ui.image {
   display: inline-block;
 }
+.image-menu {
+  padding-right: 20px;
+}
+.span-menu {
+  color: #fff;
+}
 .menu-principal .menu.transition.visible {
   width: 100%;
-  padding: 30px;
+  /* padding: 30px; */
   text-align: center;
   background-color: #74706b;
 }
 .menu-principal .menu.transition.visible a {
   color: #ffffff;
 }
-.menu-principal .menu.transition.visible a:hover {
-  color: #244b99 !important;
+.menu-principal .menu.transition.visible a:hover .item {
+  background-color: #b3b3b3 !important;
 }
 .menu-principal .menu.transition.visible a .item {
-  padding: 20px 0;
+  padding: 30px 60px;
+}
+.columna-buscador {
+  text-align: right;
+}
+.lista_clientes-acciones a {
+  color: grey;
+}
+.lista_clientes-acciones a:hover,
+.lista_clientes-acciones a:hover i {
+  color: #77c4d2 !important;
+}
+
+/*ALTA EMPLEADO*/
+.field-button_upload, .field-file_upload {
+  float: left;
+}
+.field-file_upload {
+  width: 250px;
+}
+.field-button_upload .button {
+  width: 150px;
+}
+.button-submit-cliente {
+  text-align: right;
+}
+/* //ALTA EMPLEADO*/
+
+.react-datepicker-wrapper {
+  display: block!important;
+}
+
+.ui.dropdown.userDropdown .menu {
+  right: 0;
+  left: unset;
+}
+
+.userColumn {
+  text-align: right;
 }

@@ -5,16 +5,21 @@ import {
   Header,
   Icon,
   Divider,
-  Button
+  Button,
+  Dropdown
 } from "semantic-ui-react";
 import feathers from "../../../feathers-client";
 import md5 from "md5";
 import swal from "sweetalert";
+import _ from "lodash";
 
 class EditarCliente extends Component {
   state = {
     loading: true,
     loadingPass: false,
+    operadores: [],
+    operadoresSelected: [],
+    operadoresSelectedOrig: [],
     nuevoCliente: {
       Nombre: "",
       Sucursal: "",
@@ -33,7 +38,74 @@ class EditarCliente extends Component {
 
   componentDidMount() {
     this.traerCliente();
+    this.obtenerOperadores();
+    this.obtenerOperadoresSelected();
   }
+
+  obtenerOperadoresSelected = () => {
+    feathers
+      .service("operador-cliente")
+      .find({
+        query: {
+          Cliente_Id: this.props.match.params.id
+        }
+      })
+      .then(res => {
+        console.log(res);
+        const operadoresSelected = res.data.map(op => op.Operador_Id);
+        this.setState({
+          operadoresSelected,
+          operadoresSelectedOrig: operadoresSelected
+        });
+      })
+      .catch(err => console.log(err));
+  };
+
+  obtenerOperadores = () => {
+    const operadoresService = feathers.service("operadores");
+    operadoresService
+      .find()
+      .then(res => {
+        // console.log(res);
+        const operadores = res.data.map(o => {
+          return {
+            key: o.id,
+            text: o.Nombre,
+            value: o.id
+          };
+        });
+        this.setState({ operadores, operadoresLoading: false });
+      })
+      .catch(err => console.log(err));
+  };
+
+  changeOperadores = (e, { value }) => {
+    this.setState({ operadoresSelected: value });
+  };
+
+  editarOperadores = async () => {
+    const b = _.isEqual(
+      _.sortBy(this.state.operadoresSelected),
+      _.sortBy(this.state.operadoresSelectedOrig)
+    );
+    if (b) return;
+
+    await feathers.service("operador-cliente").remove(null, {
+      query: {
+        Cliente_Id: this.props.match.params.id
+      }
+    });
+    this.state.operadoresSelected.forEach(async op => {
+      await feathers
+        .service("operador-cliente")
+        .create({
+          Cliente_Id: this.props.match.params.id,
+          Operador_Id: op
+        })
+        .then(res => console.log(res))
+        .catch(err => console.log(err));
+    });
+  };
 
   traerCliente = () => {
     this.setState({ loading: true });
@@ -41,7 +113,7 @@ class EditarCliente extends Component {
       .service("usuarios")
       .get(this.props.match.params.id)
       .then(res => {
-        console.log(res);
+        // console.log(res);
         this.setState({ loading: false, nuevoCliente: res });
       })
       .catch(err => {
@@ -78,6 +150,7 @@ class EditarCliente extends Component {
       .patch(this.props.match.params.id, nuevoCliente)
       .then(res => {
         console.log(res);
+        this.editarOperadores();
         swal(
           "Cliente Editado",
           "El cliente se ha editado correctamente",
@@ -193,13 +266,25 @@ class EditarCliente extends Component {
                 value={this.state.nuevoCliente.Telefono}
                 onChange={value => this.handleChange(value, "Telefono")}
               />
-              <Form.Input
+              {/* <Form.Input
                 required
                 fluid
                 label="Operadores:"
                 value={this.state.nuevoCliente.Sucursal}
                 onChange={value => this.handleChange(value, "Sucursal")}
-              />
+              /> */}
+              <Form.Field>
+                <label>Operadores:</label>
+                <Dropdown
+                  loading={this.state.operadoresLoading}
+                  fluid
+                  multiple
+                  selection
+                  value={this.state.operadoresSelected}
+                  options={this.state.operadores}
+                  onChange={this.changeOperadores}
+                />
+              </Form.Field>
             </Form.Group>
             <Form.Group widths="equal">
               <Form.Input

@@ -1,10 +1,8 @@
-
 // Dependencies
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import React, { Component } from "react";
+import PropTypes from "prop-types";
 
 // Assets
-
 
 class Content extends Component {
   static propTypes = {
@@ -14,11 +12,7 @@ class Content extends Component {
   render() {
     const { body } = this.props;
 
-    return (
-      <div className="Content">
-        {body}
-      </div>
-    );
+    return <div className="Content">{body}</div>;
   }
 }
 

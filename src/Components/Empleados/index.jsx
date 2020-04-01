@@ -12,26 +12,26 @@ import { Link } from "react-router-dom";
 import feathers from "../../feathers-client";
 import swal from "sweetalert";
 
-class ListaClientes extends Component {
+class ListaEmpleados extends Component {
   state = {
-    clientes: [],
+    empleados: [],
     loading: false
   };
 
   componentDidMount() {
-    this.traerClientes();
+    this.traerEmpleados();
   }
 
-  traerClientes = () => {
+  traerEmpleados = () => {
     this.setState({ loading: true });
-    const clientes = feathers.service("usuarios");
-    clientes.find().then(res => this.setState({ clientes: res.data }));
+    const empleados = feathers.service("empleados");
+    empleados.find().then(res => this.setState({ empleados: res.data }));
     this.setState({ loading: false });
   };
 
   handleDelete = Id => {
     swal({
-      title: "¿Seguro desea eliminar el cliente?",
+      title: "¿Seguro desea eliminar el empleado?",
       text: "Esta operación es irreversible",
       icon: "warning",
       buttons: true,
@@ -39,12 +39,12 @@ class ListaClientes extends Component {
     }).then(async willDelete => {
       if (willDelete) {
         await feathers
-          .service("usuarios")
+          .service("empleados")
           .remove(Id)
           .then(res => {
             console.log(res);
-            swal("Cliente eliminado correctamente", { icon: "success" });
-            this.traerClientes();
+            swal("Empleado eliminado correctamente", { icon: "success" });
+            this.traerEmpleados();
           })
           .catch(err => {
             console.log(err);
@@ -59,7 +59,7 @@ class ListaClientes extends Component {
       <Segment loading={this.state.loading}>
         <Header as="h1">
           <Icon name="list" />
-          <Header.Content>Listado de clientes</Header.Content>
+          <Header.Content>Listado de empleados</Header.Content>
         </Header>
         <Divider />
         <Grid>
@@ -74,28 +74,26 @@ class ListaClientes extends Component {
                 <Table.Header>
                   <Table.Row>
                     <Table.HeaderCell>Nombre</Table.HeaderCell>
-                    <Table.HeaderCell>Sucursal</Table.HeaderCell>
-                    <Table.HeaderCell>Ciudad</Table.HeaderCell>
-                    <Table.HeaderCell>Correo Electronico</Table.HeaderCell>
-                    <Table.HeaderCell>Telefono</Table.HeaderCell>
+                    <Table.HeaderCell>Apellidos</Table.HeaderCell>
+                    <Table.HeaderCell>Sexo</Table.HeaderCell>
+                    <Table.HeaderCell>Empresa</Table.HeaderCell>
                     <Table.HeaderCell>Acciones</Table.HeaderCell>
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                  {this.state.clientes.map((c, i) => {
+                  {this.state.empleados.map(c => {
                     return (
-                      <Table.Row key={i}>
+                      <Table.Row>
                         <Table.Cell>{c.Nombre}</Table.Cell>
-                        <Table.Cell>{c.Sucursal}</Table.Cell>
-                        <Table.Cell>{c.Ciudad}</Table.Cell>
-                        <Table.Cell>{c.Correo}</Table.Cell>
-                        <Table.Cell>{c.Telefono}</Table.Cell>
-                        <Table.Cell className="lista_clientes-acciones">
+                        <Table.Cell>{c.Apellido}</Table.Cell>
+                        <Table.Cell>{c.Sexo}</Table.Cell>
+                        <Table.Cell>{c.Empresa}</Table.Cell>
+                        <Table.Cell className="lista_empleados-acciones">
                           <Link to="#" onClick={() => this.handleDelete(c.id)}>
                             <Icon name="trash" color="grey" /> Eliminar
                           </Link>
                           &nbsp;&nbsp;&nbsp;&nbsp;
-                          <Link to={`/editar-cliente/${c.id}`}>
+                          <Link to={`/editar-empleado/${c.id}`}>
                             <Icon name="pencil" color="grey" /> Editar
                           </Link>
                         </Table.Cell>
@@ -112,4 +110,4 @@ class ListaClientes extends Component {
   }
 }
 
-export default ListaClientes;
+export default ListaEmpleados;
