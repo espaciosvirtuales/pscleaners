@@ -2,7 +2,7 @@ import React from "react";
 import { Route, Switch, Redirect } from "react-router-dom";
 
 import App from "./Components/App";
-import Home from "./Components/Home";
+// import Home from "./Components/Home";
 import ListaClientes from "./Components/Clientes";
 import AltaCliente from "./Components/Clientes/Alta";
 import EditarCliente from "./Components/Clientes/Editar";
@@ -24,12 +24,9 @@ const AppRoutes = () => (
           path="/editar-cliente/:id"
           component={EditarCliente}
         />
-        <PrivateRouteAdmin path="/empleados" component={ListaEmpleados} />
-        <PrivateRouteAdmin path="/alta-empleado" component={AltaEmpleado} />
-        <PrivateRouteAdmin
-          path="/editar-empleado/:id"
-          component={EditarEmpleado}
-        />
+        <PrivateRoute path="/empleados" component={ListaEmpleados} />
+        <PrivateRoute path="/alta-empleado" component={AltaEmpleado} />
+        <PrivateRoute path="/editar-empleado/:id" component={EditarEmpleado} />
         <PrivateRoute path="/reportes" component={Reportes} />
         <PrivateRouteAdmin path="/ajustes" component={Ajustes} />
         <PrivateRouteReverse path="/login" component={Login} />
@@ -39,7 +36,7 @@ const AppRoutes = () => (
 );
 
 const token = JSON.parse(localStorage.getItem("token"));
-console.log(token !== null);
+// console.log(token !== null);
 
 const PrivateRoute = ({ component: Component, ...rest }) => (
   <Route

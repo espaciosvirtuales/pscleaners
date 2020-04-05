@@ -36,18 +36,28 @@ class App extends Component {
     class: {
       display: "none"
     },
-    userLogged: ""
+    classMenu: {
+      display: "none"
+    },
+    userLogged: "",
+    menuColumns: 2
   };
 
   componentDidMount() {
-    console.log(this.props);
+    // console.log(this.props);
     const token = JSON.parse(localStorage.getItem("token"));
-    console.log(token);
+    // console.log(token);
     if (token !== null) {
       this.setState({
         class: { display: "flex" },
         userLogged: token.Nombre
       });
+      if (token.Rol === "Administrador") {
+        this.setState({
+          classMenu: { display: "inline-block" },
+          menuColumns: 3
+        });
+      }
     }
   }
 
@@ -55,7 +65,7 @@ class App extends Component {
     console.log("voy a cerrar");
     localStorage.removeItem("token");
     localStorage.removeItem("tokenjwt");
-    window.location = "/login";
+    window.location = "/";
   };
 
   render() {
@@ -68,7 +78,7 @@ class App extends Component {
             <Grid.Row>
               <Grid.Column width={1}></Grid.Column>
               <Grid.Column width={9}>
-                <Image src="/logo.png" />
+                <Image src="/logo.png" style={{ width: "150px" }} />
               </Grid.Column>
               <Grid.Column width={3} className="userColumn">
                 <Dropdown text={this.state.userLogged} className="userDropdown">
@@ -88,9 +98,13 @@ class App extends Component {
               </Grid.Column>
             </Grid.Row>
           </Grid>
-          <Grid columns={3} className="menu-principal" style={this.state.class}>
+          <Grid
+            columns={this.state.menuColumns}
+            className="menu-principal"
+            style={this.state.class}
+          >
             <Grid.Row>
-              <Grid.Column className="menu-item">
+              <Grid.Column className="menu-item" style={this.state.classMenu}>
                 {/* <Image src="/icono-edificio.png" /> */}
                 <Dropdown trigger={trigger}>
                   <Dropdown.Menu>

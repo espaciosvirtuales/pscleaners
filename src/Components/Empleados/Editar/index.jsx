@@ -13,10 +13,13 @@ import swal from "sweetalert";
 import moment from "moment";
 import axios from "axios";
 
+const token = JSON.parse(localStorage.getItem("token"));
+
 class EditarEmpleado extends Component {
   state = {
     loading: false,
     clientesLoading: true,
+    isAdmin: false,
     clientes: [],
     categorias: [],
     archivosUpaloded: false,
@@ -46,7 +49,10 @@ class EditarEmpleado extends Component {
     }
   };
 
-  componentDidMount() {
+  async componentDidMount() {
+    if (token.Rol === "Administrador") {
+      await this.setState({ isAdmin: true });
+    }
     this.obtenerClientes();
     this.traerEmpleado();
     this.obtenerCategorias();
@@ -73,13 +79,16 @@ class EditarEmpleado extends Component {
       .find()
       .then(res => {
         console.log(res);
-        const clientes = res.data.map(o => {
+        let clientes = res.data.map(o => {
           return {
             key: o.id,
             text: o.Nombre,
             value: o.id
           };
         });
+        if (this.state.isAdmin === false) {
+          clientes = clientes.filter(c => c.key == token.id);
+        }
         this.setState({ clientes, clientesLoading: false });
       })
       .catch(err => console.log(err));
@@ -132,8 +141,8 @@ class EditarEmpleado extends Component {
           ...this.state.archivos,
           [e.target.name]: nuevoArchivo
         }
-      },
-      () => this.recorrerObjeto()
+      }/*,
+      () => this.recorrerObjeto()*/
     );
   };
 
@@ -147,50 +156,59 @@ class EditarEmpleado extends Component {
   };
 
   actualizarArchivos = async () => {
-    await feathers.service("archivos").remove(null, {
-      query: {
-        Empleado_Id: this.props.match.params.id
-      }
-    });
+    // await feathers.service("archivos").remove(null, {
+    //   query: {
+    //     Empleado_Id: this.props.match.params.id
+    //   }
+    // });
     const { archivos } = this.state;
     for (const arch in this.state.archivos) {
-      const data = new FormData();
-      data.append("file", archivos[arch].file);
-      axios({
-        method: "post",
-        url: `${process.env.REACT_APP_IP_API}/uploads`,
-        data: data,
-        headers: { "Content-Type": "multipart/form-data" }
-      })
-        .then(res => {
-          console.log(res);
-          feathers
-            .service("archivos")
-            .create({
-              Empleado_Id: this.props.match.params.id,
-              Categoria_Id: archivos[arch].category_id,
-              Ruta: `${process.env.REACT_APP_IP_API}/files/${
-                res.data.url.split("/")[3]
-                } `,
-              Nombre: res.data.url.split("/")[3],
-              FechaCreacion: moment().format("YYYY-MM-DD")
-            })
-            .then(res => {
-              swal(
-                "Empleado Editado",
-                "El empleado se ha editado correctamente",
-                "success"
-              );
-            })
-            .catch(err => {
-              swal(
-                "Error",
-                "Ha ocurrido un error. Por favor intente mas tarde",
-                "error"
-              );
-            });
+      console.log(archivos[arch].file);
+      if (archivos[arch].file !== null) {
+        await feathers.service("archivos").remove(null, {
+          query: {
+            Empleado_Id: this.props.match.params.id,
+            Categoria_Id: archivos[arch].category_id
+          }
+        });
+        const data = new FormData();
+        data.append("file", archivos[arch].file);
+        axios({
+          method: "post",
+          url: `${process.env.REACT_APP_IP_API}/uploads`,
+          data: data,
+          headers: { "Content-Type": "multipart/form-data" }
         })
-        .catch(err => console.log(err));
+          .then(res => {
+            console.log(res);
+            feathers
+              .service("archivos")
+              .create({
+                Empleado_Id: this.props.match.params.id,
+                Categoria_Id: archivos[arch].category_id,
+                Ruta: `${process.env.REACT_APP_IP_API}/files/${
+                  res.data.url.split("/")[3]
+                  } `,
+                Nombre: res.data.url.split("/")[3],
+                FechaCreacion: moment().format("YYYY-MM-DD")
+              })
+              .then(res => {
+                swal(
+                  "Empleado Editado",
+                  "El empleado se ha editado correctamente",
+                  "success"
+                );
+              })
+              .catch(err => {
+                swal(
+                  "Error",
+                  "Ha ocurrido un error. Por favor intente mas tarde",
+                  "error"
+                );
+              });
+          })
+          .catch(err => console.log(err));
+      }
     }
   };
 
@@ -361,7 +379,7 @@ class EditarEmpleado extends Component {
             <Grid.Row>
               <Grid.Column width={16}>
                 <Button
-                  disabled={this.state.archivosUpaloded === false}
+                  // disabled={this.state.archivosUpaloded === false}
                   primary
                   content="Actualizar archivos"
                   onClick={this.actualizarArchivos}

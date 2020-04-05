@@ -3,7 +3,6 @@ import { Grid, Segment, Image, Form, Button } from "semantic-ui-react";
 import feathers from "../../feathers-client";
 import swal from "sweetalert";
 import jwtDecode from "jwt-decode";
-import { Redirect } from "react-router-dom";
 
 class Login extends Component {
   state = {

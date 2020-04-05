@@ -12,6 +12,7 @@ import feathers from "../../../feathers-client";
 import md5 from "md5";
 import swal from "sweetalert";
 import _ from "lodash";
+import moment from "moment";
 
 class EditarCliente extends Component {
   state = {
@@ -143,7 +144,10 @@ class EditarCliente extends Component {
   handleSubmit = async () => {
     this.setState({ loading: true });
     let nuevoCliente = { ...this.state.nuevoCliente };
-    nuevoCliente.Contrasenia = md5(nuevoCliente.Contrasenia);
+    // nuevoCliente.Contrasenia = md5(nuevoCliente.Contrasenia);
+    nuevoCliente.FechaCreacion = moment(nuevoCliente.FechaCreacion).format(
+      "YYYY-MM-DD"
+    );
     console.log(nuevoCliente);
     await feathers
       .service("usuarios")

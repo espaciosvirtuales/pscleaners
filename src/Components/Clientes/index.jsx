@@ -11,33 +11,56 @@ import {
 import { Link } from "react-router-dom";
 import feathers from "../../feathers-client";
 import swal from "sweetalert";
+import _ from "lodash";
 
 class ListaClientes extends Component {
   state = {
     clientes: [],
-    loading: false
+    loading: false,
+    loadingSearch: false,
+    searchValue: ""
   };
 
   componentDidMount() {
     this.traerClientes();
   }
 
-  traerClientes = () => {
+  traerClientes = nombre => {
     this.setState({ loading: true });
     const clientes = feathers.service("usuarios");
-    clientes.find().then(res => this.setState({ clientes: res.data }));
+    let Nombre;
+    if (nombre && nombre !== "") {
+      Nombre = nombre;
+    } else {
+      Nombre = {
+        $ne: "-1"
+      };
+    }
+    clientes
+      .find({
+        query: {
+          Nombre: Nombre
+        }
+      })
+      .then(res => this.setState({ clientes: res.data }));
     this.setState({ loading: false });
   };
 
   handleDelete = Id => {
     swal({
       title: "¿Seguro desea eliminar el cliente?",
-      text: "Esta operación es irreversible",
+      text:
+        "Esto eliminará a sus empleados también. Esta operación es irreversible",
       icon: "warning",
       buttons: true,
       dangerMode: true
     }).then(async willDelete => {
       if (willDelete) {
+        await feathers.service("empleados").remove(null, {
+          query: {
+            Empresa: Id
+          }
+        });
         await feathers
           .service("usuarios")
           .remove(Id)
@@ -54,6 +77,11 @@ class ListaClientes extends Component {
     });
   };
 
+  handleSearch = async (e, { value }) => {
+    this.setState({ searchValue: value, loadingSearch: true });
+    await this.traerClientes(value);
+    this.setState({ loadingSearch: false });
+  };
   render() {
     return (
       <Segment loading={this.state.loading}>
@@ -65,7 +93,13 @@ class ListaClientes extends Component {
         <Grid>
           <Grid.Row>
             <Grid.Column width={16} className="columna-buscador">
-              <Search />
+              <Search
+                loading={this.state.loadingSearch}
+                onSearchChange={_.debounce(this.handleSearch, 1000, {
+                  leading: true
+                })}
+                value={this.state.searchValue}
+              />
             </Grid.Column>
           </Grid.Row>
           <Grid.Row>

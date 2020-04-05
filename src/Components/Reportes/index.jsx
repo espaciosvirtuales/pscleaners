@@ -83,7 +83,7 @@ class Reportes extends Component {
     if (this.state.searchParams.Cliente !== "") {
       query.Empresa = this.state.searchParams.Cliente;
     }
-    console.log(query);
+    // console.log(query);
     empleados
       .find({ query })
       .then(res => this.setState({ empleados: res.data }));
@@ -128,6 +128,25 @@ class Reportes extends Component {
         [name]: value
       }
     });
+  };
+
+  handleExcel = () => {
+    const excel = feathers.service("export-excel");
+    excel
+      .find({
+        query: {
+          FechaInicial: this.state.searchParams.FechaInicial,
+          FechaFinal: this.state.searchParams.FechaFinal,
+          Nombre: this.state.searchParams.Cliente,
+          Cliente: this.state.searchParams.Cliente
+        }
+      })
+      .then(res =>
+        window.open(
+          `${process.env.REACT_APP_IP_API}/${res.data.split("/")[1]}`,
+          "_blank"
+        )
+      );
   };
 
   changeSearchDateInicial = date => {
@@ -201,7 +220,7 @@ class Reportes extends Component {
             </Grid.Column>
             <Grid.Column>
               <Form.Field>
-                <label>Desde</label>
+                <label>Hasta</label>
                 <DatePicker
                   selected={this.state.FechaFinal}
                   onChange={this.changeSearchDateFinal}
@@ -218,11 +237,10 @@ class Reportes extends Component {
                 onClick={this.traerEmpleados}
               />
               <Button
-                disabled
                 icon="file excel"
                 positive
                 content="Exportar"
-                onClick={this.handleSearch}
+                onClick={this.handleExcel}
               />
             </Grid.Column>
           </Grid.Row>

@@ -6,7 +6,8 @@ import {
   Icon,
   Divider,
   Button,
-  Grid
+  Grid,
+  Modal
 } from "semantic-ui-react";
 import feathers from "../../../feathers-client";
 import swal from "sweetalert";
@@ -14,11 +15,16 @@ import moment from "moment";
 import axios from "axios";
 // import SubirArchivo from "./subirArchivo";
 
+const token = JSON.parse(localStorage.getItem("token"));
+
 class AltaEmpleado extends Component {
   state = {
     loading: false,
+    loadingExcel: false,
     clientesLoading: true,
     archivosUpaloded: false,
+    isAdmin: false,
+    isModalOpened: false,
     clientes: [],
     categorias: [],
     sexos: [
@@ -39,6 +45,10 @@ class AltaEmpleado extends Component {
       }
     ],
     archivos: [],
+    excelFile: {
+      file: null,
+      fileName: ""
+    },
     nuevoEmpleado: {
       Nombre: "",
       Apellido: "",
@@ -48,7 +58,17 @@ class AltaEmpleado extends Component {
     }
   };
 
-  componentDidMount() {
+  async componentDidMount() {
+    if (token.Rol === "Administrador") {
+      await this.setState({ isAdmin: true });
+    } else {
+      await this.setState({
+        nuevoEmpleado: {
+          ...this.state.nuevoEmpleado,
+          Empresa: token.id
+        }
+      });
+    }
     this.obtenerClientes();
     this.obtenerCategorias();
   }
@@ -83,13 +103,16 @@ class AltaEmpleado extends Component {
       .find()
       .then(res => {
         // console.log(res);
-        const clientes = res.data.map(o => {
+        let clientes = res.data.map(o => {
           return {
             key: o.id,
             text: o.Nombre,
             value: o.id
           };
         });
+        if (this.state.isAdmin === false) {
+          clientes = clientes.filter(c => c.key == token.id);
+        }
         this.setState({ clientes, clientesLoading: false });
       })
       .catch(err => console.log(err));
@@ -204,6 +227,146 @@ class AltaEmpleado extends Component {
       });
   };
 
+  excelChange = e => {
+    this.setState({
+      excelFile: {
+        file: e.target.files[0],
+        fileName: e.target.files[0].name
+      }
+    });
+  };
+
+  closeModal = () => this.setState({ isModalOpened: false });
+
+  submitExcel = () => {
+    this.setState({ loadingExcel: true });
+    const data = new FormData();
+    data.append("file", this.state.excelFile.file);
+    axios({
+      method: "post",
+      url: `${process.env.REACT_APP_IP_API}/xlsupload`,
+      data: data,
+      headers: { "Content-Type": "multipart/form-data" }
+    })
+      .then(async res => {
+        // console.log(res);
+        for (let emp of res.data) {
+          let files = [];
+          for (let k in emp) {
+            // console.log(k !== "Nombre")
+            if (
+              k !== "Nombre" &&
+              k !== "Sexo" &&
+              k !== "Apellido" &&
+              k !== "Empresa"
+            ) {
+              // console.log("entre aqui")
+              files.push({ [k]: emp[k] });
+              delete emp[k];
+            }
+          }
+          emp.FechaCreacion = moment().format("YYYY-MM-DD");
+          for (let f of files) {
+            const catId = this.state.categorias.filter(
+              c => c.Nombre === Object.keys(f)[0]
+            )[0].id;
+            f.categoryId = catId;
+            f.fileName = f[Object.keys(f)[0]];
+          }
+          console.log(emp);
+          console.log(files);
+          await feathers
+            .service("empleados")
+            .create(emp)
+            .then(res => {
+              console.log(res);
+              files.forEach(async f => {
+                await feathers.service("archivos").create({
+                  Empleado_Id: res.id,
+                  Categoria_Id: f.categoryId,
+                  Ruta: `${process.env.REACT_APP_IP_API}/files/${f.fileName}`,
+                  Nombre: f.fileName,
+                  FechaCreacion: moment().format("YYYY-MM-DD")
+                });
+              });
+            });
+        }
+        await this.setState({ loadingExcel: false, isModalOpened: false });
+        swal(
+          "Empleados Agregados",
+          "Los empleados se han agregado correctamente",
+          "success"
+        );
+      })
+      .catch(err => {
+        console.log(err);
+        swal(
+          "Error",
+          "Ha ocurrido un error. Por favor intente mas tarde",
+          "error"
+        );
+        this.setState({ loadingExcel: false, isModalOpened: false });
+      });
+  };
+
+  ModalAltaMasiva = () => {
+    const { isModalOpened } = this.state;
+    return (
+      <Modal onClose={this.closeModal} open={isModalOpened} closeIcon>
+        <Modal.Header>Alta masiva de empleados</Modal.Header>
+        <Modal.Content style={{ minHeight: "100px" }}>
+          <Form loading={this.state.loadingExcel}>
+            <Form.Field>
+              <label>Cargar Excel</label>
+              <div className="field-button_upload">
+                <Button
+                  as="label"
+                  htmlFor="file"
+                  type="button"
+                  animated="fade"
+                  color="teal"
+                  onClick={_ => {
+                    document.getElementById("uploadFile").click();
+                  }}
+                >
+                  <Button.Content visible>
+                    <Icon name="file" />
+                  </Button.Content>
+                  <Button.Content hidden>Seleccionar Archivo</Button.Content>
+                </Button>
+              </div>
+              <div className="field-file_upload">
+                <input
+                  type="file"
+                  name="excelEmpleados"
+                  id="uploadFile"
+                  hidden
+                  onChange={event => this.excelChange(event)}
+                />
+                <Form.Input
+                  fluid
+                  placeholder="No se eligió archivo"
+                  readOnly
+                  value={this.state.excelFile.fileName}
+                />
+              </div>
+            </Form.Field>
+          </Form>
+        </Modal.Content>
+        <Modal.Actions>
+          <Button
+            disabled={this.state.excelFile.fileName === ""}
+            positive
+            icon="checkmark"
+            labelPosition="right"
+            content="Subir"
+            onClick={this.submitExcel}
+          />
+        </Modal.Actions>
+      </Modal>
+    );
+  };
+
   render() {
     return (
       <div>
@@ -212,6 +375,11 @@ class AltaEmpleado extends Component {
             <Icon name="plus" size="large" />
             <Header.Content>Agregar empleado</Header.Content>
           </Header>
+          <Button
+            positive
+            content="Alta masiva"
+            onClick={() => this.setState({ isModalOpened: true })}
+          />
           <Divider />
           <Form>
             <Form.Group widths="equal">
@@ -342,6 +510,7 @@ class AltaEmpleado extends Component {
             </Grid>
           </Form>
         </Segment>
+        {this.ModalAltaMasiva()}
       </div>
     );
   }

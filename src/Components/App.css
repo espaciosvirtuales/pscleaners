@@ -9,7 +9,7 @@
 .menu-item {
   background-color: #244b99;
   border: solid 1px #ffffff;
-  padding: 15px;
+  padding: 10px;
   text-align: center;
 }
 .menu-item i.icon {
@@ -48,11 +48,13 @@ img.ui.image {
 .columna-buscador {
   text-align: right;
 }
-.lista_clientes-acciones a {
+.lista_clientes-acciones a, .lista_empleados-acciones a  {
   color: grey;
 }
 .lista_clientes-acciones a:hover,
-.lista_clientes-acciones a:hover i {
+.lista_clientes-acciones a:hover i,
+.lista_empleados-acciones a:hover,
+.lista_empleados-acciones a:hover i {
   color: #77c4d2 !important;
 }
 
@@ -83,3 +85,8 @@ img.ui.image {
 .userColumn {
   text-align: right;
 }
+
+.columna-buscador .visible.transition {
+  display: none!important;
+  visibility: hidden!important;
+} 
