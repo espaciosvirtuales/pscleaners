@@ -78,11 +78,6 @@ class ListaEmpleados extends Component {
       dangerMode: true
     }).then(async willDelete => {
       if (willDelete) {
-        await feathers.service("archivos").remove(null, {
-          query: {
-            Empleado_Id: Id
-          }
-        });
         await feathers
           .service("empleados")
           .remove(Id)

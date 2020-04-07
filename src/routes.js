@@ -24,9 +24,12 @@ const AppRoutes = () => (
           path="/editar-cliente/:id"
           component={EditarCliente}
         />
-        <PrivateRoute path="/empleados" component={ListaEmpleados} />
-        <PrivateRoute path="/alta-empleado" component={AltaEmpleado} />
-        <PrivateRoute path="/editar-empleado/:id" component={EditarEmpleado} />
+        <PrivateRouteAdmin path="/empleados" component={ListaEmpleados} />
+        <PrivateRouteAdmin path="/alta-empleado" component={AltaEmpleado} />
+        <PrivateRouteAdmin
+          path="/editar-empleado/:id"
+          component={EditarEmpleado}
+        />
         <PrivateRoute path="/reportes" component={Reportes} />
         <PrivateRouteAdmin path="/ajustes" component={Ajustes} />
         <PrivateRouteReverse path="/login" component={Login} />

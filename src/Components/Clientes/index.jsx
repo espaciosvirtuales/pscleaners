@@ -56,11 +56,6 @@ class ListaClientes extends Component {
       dangerMode: true
     }).then(async willDelete => {
       if (willDelete) {
-        await feathers.service("empleados").remove(null, {
-          query: {
-            Empresa: Id
-          }
-        });
         await feathers
           .service("usuarios")
           .remove(Id)

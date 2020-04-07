@@ -30,6 +30,7 @@ class Reportes extends Component {
     clienteId: 0,
     empleados: [],
     clientes: [],
+    operadores: [],
     FechaInicial: monthAgo,
     FechaFinal: new Date(),
     searchParams: {
@@ -39,13 +40,16 @@ class Reportes extends Component {
         .subtract(1, "months")
         .format("YYYY-MM-DD"),
       FechaFinal: moment().format("YYYY-MM-DD")
+    },
+    class: {
+      display: "none"
     }
   };
 
   async componentDidMount() {
     this.addClasses();
     if (token.Rol === "Administrador") {
-      this.setState({ isAdmin: true });
+      this.setState({ isAdmin: true, class: { display: "table-cell" } });
     } else {
       await this.setState({
         searchParams: {
@@ -56,6 +60,7 @@ class Reportes extends Component {
     }
     this.traerEmpleados();
     this.obtenerClientes();
+    this.traerOperadores();
   }
 
   addClasses = () => {
@@ -88,6 +93,26 @@ class Reportes extends Component {
       .find({ query })
       .then(res => this.setState({ empleados: res.data }));
     this.setState({ loading: false });
+  };
+
+  traerOperadores = async () => {
+    const operadorCliente = await feathers.service("operador-cliente").find({
+      query: {
+        Cliente_Id: token.id
+      }
+    });
+
+    const clientesService = feathers.service("operadores");
+    clientesService
+      .find()
+      .then(res => {
+        const operadores = operadorCliente.data.map(o =>
+          res.data.find(op => op.id === o.Operador_Id)
+        );
+        console.log(operadores);
+        this.setState({ operadores });
+      })
+      .catch(err => console.log(err));
   };
 
   obtenerClientes = () => {
@@ -245,6 +270,34 @@ class Reportes extends Component {
             </Grid.Column>
           </Grid.Row>
           <Grid.Row>
+            <Grid.Column>
+              <p style={{ fontWeight: "bold", fontSize: "18px" }}>
+                ARCHIVOS OPERADORES:
+              </p>
+            </Grid.Column>
+          </Grid.Row>
+          <Grid.Row columns={8}>
+            {this.state.operadores.map((o, i) => {
+              return (
+                <Grid.Column key={i}>
+                  <Dropdown text={o.Nombre}>
+                    <Dropdown.Menu>
+                      {o.archivos.map((a, i) => {
+                        return (
+                          <Dropdown.Item
+                            key={i}
+                            text={a.categoria.Nombre}
+                            onClick={() => window.open(a.Ruta, "_blank")}
+                          />
+                        );
+                      })}
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </Grid.Column>
+              );
+            })}
+          </Grid.Row>
+          <Grid.Row>
             <Grid.Column width={16}>
               <Table>
                 <Table.Header>
@@ -254,7 +307,9 @@ class Reportes extends Component {
                     <Table.HeaderCell>Ciudad</Table.HeaderCell>
                     <Table.HeaderCell>Cliente</Table.HeaderCell>
                     <Table.HeaderCell>Documento</Table.HeaderCell>
-                    <Table.HeaderCell>Acciones</Table.HeaderCell>
+                    <Table.HeaderCell style={this.state.class}>
+                      Acciones
+                    </Table.HeaderCell>
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
@@ -282,7 +337,10 @@ class Reportes extends Component {
                             </Dropdown.Menu>
                           </Dropdown>
                         </Table.Cell>
-                        <Table.Cell className="lista_clientes-acciones">
+                        <Table.Cell
+                          className="lista_clientes-acciones"
+                          style={this.state.class}
+                        >
                           <Link to="#" onClick={() => this.handleDelete(c.id)}>
                             <Icon name="trash" color="grey" /> Eliminar
                           </Link>

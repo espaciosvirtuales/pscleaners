@@ -40,7 +40,7 @@ class App extends Component {
       display: "none"
     },
     userLogged: "",
-    menuColumns: 2
+    menuColumns: 1
   };
 
   componentDidMount() {
@@ -117,7 +117,7 @@ class App extends Component {
                   </Dropdown.Menu>
                 </Dropdown>
               </Grid.Column>
-              <Grid.Column className="menu-item">
+              <Grid.Column className="menu-item" style={this.state.classMenu}>
                 {/* <Image src="/icono-edificio.png" /> */}
                 <Dropdown trigger={trigger2}>
                   <Dropdown.Menu>
